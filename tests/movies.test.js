@@ -79,7 +79,7 @@ describe("POST /api/movies", () => {
       .post("/api/movies")
       .send(movieWithMissingProps);
 
-      expect(response.status).toEqual(422);
+    expect(response.status).toEqual(422);
   });
 });
 
@@ -163,6 +163,42 @@ describe("PUT /api/movies/:id", () => {
     };
 
     const response = await request(app).put("/api/movies/0").send(newMovie);
+
+    expect(response.status).toEqual(404);
+  });
+});
+
+describe("DELETE /api/movies/:id", () => {
+  let id;
+  it("should delete movie", async () => {
+    const newMovie = {
+      title: "Memento",
+      director: "Christopher Nolan",
+      year: "2000",
+      color: "1",
+      duration: 150,
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [
+        newMovie.title,
+        newMovie.director,
+        newMovie.year,
+        newMovie.color,
+        newMovie.duration,
+      ]
+    );
+
+    id = result.insertId;
+
+    const response = await request(app).delete(`/api/movies/${id}`);
+
+    expect(response.status).toEqual(204);
+  });
+
+  it("should return no movie", async () => {
+    const response = await request(app).get(`/api/movies/${id}`);
 
     expect(response.status).toEqual(404);
   });
